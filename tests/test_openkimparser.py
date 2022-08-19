@@ -20,7 +20,7 @@ import pytest
 import numpy as np
 
 from nomad.datamodel import EntryArchive
-from atomisticparsers.openkim import OpenKIMParser
+from databaseparsers.openkim import OpenKIMParser
 
 
 def approx(value, abs=0, rel=1e-6):
