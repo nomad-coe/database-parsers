@@ -1,7 +1,7 @@
 codeLabel: OpenKIM
 codeLabelStyle: 'Capitals: O,K,I,M'
 codeName: openkim
-codeCategory: Database
+codeCategory: Database manager
 codeUrl: https://openkim.org/
 parserDirName: dependencies/parsers/atomistic/atomisticparsers/openkim/
 parserGitUrl: https://github.com/nomad-coe/atomistic-parsers.git
