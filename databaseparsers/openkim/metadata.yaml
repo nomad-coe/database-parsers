@@ -4,8 +4,8 @@ codeName: openkim
 codeCategory: Database manager
 status: production
 codeUrl: https://openkim.org/
-parserDirName: dependencies/parsers/atomistic/atomisticparsers/openkim/
-parserGitUrl: https://github.com/nomad-coe/atomistic-parsers.git
+parserDirName: dependencies/parsers/database/databaseparsers/openkim/
+parserGitUrl: https://github.com/nomad-coe/database-parsers.git
 parserSpecific: ''
 preamble: ''
 tableOfFiles: ''
