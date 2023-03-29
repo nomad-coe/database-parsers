@@ -16,4 +16,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from .openkim.parser import OpenKIMParser
+
+# from .openkim.parser import OpenKIMParser
