@@ -36,7 +36,9 @@ from nomad.datamodel.metainfo.simulation.system import System, Atoms
 from nomad.datamodel.metainfo.simulation.method import Method, ForceField, Model
 from nomad.datamodel.metainfo.simulation.calculation import (
     BandEnergies, BandStructure, Calculation, Energy, EnergyEntry, Stress, StressEntry)
-from nomad.datamodel.metainfo.workflow import Phonon, Workflow, Elastic, Interface
+from nomad.datamodel.metainfo.simulation.workflow import (
+    Elastic, ElasticMethod, ElasticResults, Phonon
+)
 from .metainfo import openkim  # pylint: disable=unused-import
 
 
@@ -61,7 +63,7 @@ class Converter:
             # TODO add other properties: phonon
             # challenge for phonon is alligning phonon frequency array or extracting
             # frequencies at high-symm k-points
-            'workflow[-1].elastic.elastic_constants_matrix_second_order': 'mechanical',
+            'workflow.results.elastic_constants_matrix_second_order': 'mechanical',
             'run[-1].calculation[-1].band_structure_phonon[-1].segment[*].energies': 'vibrational',
         }
         if property_name not in property_map:
@@ -126,7 +128,7 @@ class Converter:
             return
 
         # calculate rms error of openkim data wrt nomad
-        sec_workflow = self.archive.workflow[-1]
+        sec_workflow = self.archive.workflow
         sec_workflow.x_openkim_property = property_name
         sec_workflow.x_openkim_n_nomad_data = len(nomad_data)
         sec_workflow.x_openkim_nomad_std = np.average(np.std(nomad_data, axis=0))
@@ -190,6 +192,7 @@ class Converter:
             return np.array(data_special).flatten()
 
         # first entry is the parser-generated header used identify an  open-kim
+        workflow = None
         for entry in self.entries:
             sec_run = self.archive.m_create(Run)
             sec_run.program = Program(name='OpenKIM', version=entry.get('meta.runner.short-id'))
@@ -258,9 +261,7 @@ class Converter:
             property_id = entry.get('property-id', '')
             # elastic constants
             if 'elastic-constants' in property_id:
-                sec_workflow = self.archive.m_create(Workflow)
-                sec_workflow.type = 'elastic'
-                sec_elastic = sec_workflow.m_create(Elastic)
+                workflow = Elastic(method=ElasticMethod(), results=ElasticResults())
                 cij = [[get_value(entry, f'c{i}{j}.si-value', default=0) for j in range(1, 7)] for i in range(1, 7)]
                 sg = self.material.get('space_group_number', 0)
                 if sg <= 74:
@@ -292,7 +293,7 @@ class Converter:
                     cij[4][4] = cij[3][3]
                     cij[5][5] = cij[3][3]
 
-                sec_elastic.elastic_constants_matrix_second_order = symmetrize_matrix(cij)
+                workflow.results.elastic_constants_matrix_second_order = symmetrize_matrix(cij)
 
                 try:
                     self.calculate_nomad_error('workflow[-1].elastic.elastic_constants_matrix_second_order')
@@ -302,42 +303,40 @@ class Converter:
                 if 'strain-gradient' in property_id:
                     # TODO implement symmetry
                     dij = [[get_value(entry, f'd-{i}-{j}.si-value', default=0) for i in range(1, 19)] for j in range(1, 19)]
-                    sec_elastic.elastic_constants_gradient_matrix_second_order = symmetrize_matrix(dij)
+                    workflow.results.elastic_constants_gradient_matrix_second_order = symmetrize_matrix(dij)
 
                 if 'excess.si-value' in entry:
-                    sec_elastic.x_openkim_excess = entry['excess.si-value']
+                    workflow.x_openkim_excess = entry['excess.si-value']
 
             if 'gamma-surface' in property_id or 'stacking-fault' in property_id or 'twinning-fault' in property_id:
-                sec_workflow = self.archive.m_create(Workflow)
-                sec_workflow.type = 'interface'
-                sec_interface = sec_workflow.m_create(Interface)
-                if 'gamma-surface.si-value' in entry:
-                    directions, displacements = [], []
-                    for key in entry.keys():
-                        direction = re.match(r'fault-plane-shift-fraction-(\d+).source-value', key)
-                        if direction:
-                            directions.append(direction.group(1))
-                            displacements.append(entry[key])
-                    sec_interface.dimensionality = len(directions)
-                    sec_interface.shift_direction = directions
-                    sec_interface.displacement_fraction = displacements
-                    sec_interface.gamma_surface = entry['gamma-surface.si-value']
+                pass
+                # TODO implement metainfo defs
+                # sec_interface = Interface()
+                # if 'gamma-surface.si-value' in entry:
+                #     directions, displacements = [], []
+                #     for key in entry.keys():
+                #         direction = re.match(r'fault-plane-shift-fraction-(\d+).source-value', key)
+                #         if direction:
+                #             directions.append(direction.group(1))
+                #             displacements.append(entry[key])
+                #     sec_interface.dimensionality = len(directions)
+                #     sec_interface.shift_direction = directions
+                #     sec_interface.displacement_fraction = displacements
+                #     sec_interface.gamma_surface = entry['gamma-surface.si-value']
 
-                if 'fault-plane-energy.si-value' in entry:
-                    sec_interface.dimensionality = 1
-                    sec_interface.displacement_fraction = [entry['fault-plane-shift-fraction.source-value']]
-                    sec_interface.energy_fault_plane = entry['fault-plane-energy.si-value']
+                # if 'fault-plane-energy.si-value' in entry:
+                #     sec_interface.dimensionality = 1
+                #     sec_interface.displacement_fraction = [entry['fault-plane-shift-fraction.source-value']]
+                #     sec_interface.energy_fault_plane = entry['fault-plane-energy.si-value']
 
-                sec_interface.energy_extrinsic_stacking_fault = entry.get('extrinsic-stacking-fault-energy.si-value')
-                sec_interface.energy_intrinsic_stacking_fault = entry.get('intrinsic-stacking-fault-energy.si-value')
-                sec_interface.energy_unstable_stacking_fault = entry.get('unstable-stacking-energy.si-value')
-                sec_interface.energy_unstable_twinning_fault = entry.get('unstable-twinning-energy.si-value')
-                sec_interface.slip_fraction = entry.get('unstable-slip-fraction.source-value')
+                # sec_interface.energy_extrinsic_stacking_fault = entry.get('extrinsic-stacking-fault-energy.si-value')
+                # sec_interface.energy_intrinsic_stacking_fault = entry.get('intrinsic-stacking-fault-energy.si-value')
+                # sec_interface.energy_unstable_stacking_fault = entry.get('unstable-stacking-energy.si-value')
+                # sec_interface.energy_unstable_twinning_fault = entry.get('unstable-twinning-energy.si-value')
+                # sec_interface.slip_fraction = entry.get('unstable-slip-fraction.source-value')
 
             if 'phonon-dispersion' in property_id:
-                sec_workflow = self.archive.m_create(Workflow)
-                sec_workflow.type = 'phonon'
-                sec_phonon = sec_workflow.m_create(Phonon)
+                workflow = Phonon()
                 if 'response-frequency.si-value' in entry:
                     sec_scc = sec_run.calculation[-1] if sec_run.calculation else sec_run.m_create(Calculation)
                     sec_bandstructure = sec_scc.m_create(BandStructure, Calculation.band_structure_phonon)
@@ -361,8 +360,10 @@ class Converter:
                     self.logger.error('Failed to calculate nomad error.')
 
                 if 'wave-number.si-value' in entry:
-                    sec_phonon.x_openkim_wave_number = [entry['wave-number.si-value']]
+                    workflow.x_openkim_wave_number = [entry['wave-number.si-value']]
 
+        # TODO handle multiple workflows
+        self.archive.workflow = workflow
         # write archive to file
         if filename is not None:
             with open(filename, 'w') as f:
