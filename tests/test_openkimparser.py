@@ -59,7 +59,7 @@ def test_elastic(parser):
 
     assert len(archive.run) == 3
 
-    workflow = archive.workflow
+    workflow = archive.workflow2
     assert workflow.m_def.name == 'Elastic'
     # assert workflow.results.elastic_constants_matrix_second_order[1][0].magnitude == approx(138253477422.5595)
     # assert workflow.results.elastic_constants_gradient_matrix_second_order[15][16].magnitude == approx(7.155162012789679e-10)

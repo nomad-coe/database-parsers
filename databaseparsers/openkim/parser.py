@@ -128,7 +128,7 @@ class Converter:
             return
 
         # calculate rms error of openkim data wrt nomad
-        sec_workflow = self.archive.workflow
+        sec_workflow = self.archive.workflow2
         sec_workflow.x_openkim_property = property_name
         sec_workflow.x_openkim_n_nomad_data = len(nomad_data)
         sec_workflow.x_openkim_nomad_std = np.average(np.std(nomad_data, axis=0))
@@ -363,7 +363,7 @@ class Converter:
                     workflow.x_openkim_wave_number = [entry['wave-number.si-value']]
 
         # TODO handle multiple workflows
-        self.archive.workflow = workflow
+        self.archive.workflow2 = workflow
         # write archive to file
         if filename is not None:
             with open(filename, 'w') as f:
