@@ -27,7 +27,7 @@ jobs:
         echo $(pwd)
         ls
         pip install ./nomad[parsing]
-´    - name: pycodestyle
+´   - name: pycodestyle
       run: |
         python -m pycodestyle --ignore=E501,E701,E731 *parsers tests
     - name: pylint
