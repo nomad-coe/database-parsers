@@ -15,7 +15,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: nomad-coe/nomad
-        path: ./nomad
     - name: Install dependencies
       run: |
         echo $(pwd)
