@@ -11,12 +11,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: check out nomad
-      uses: actions/checkout@v2
-      with:
-        repository: nomad-coe/nomad
     - name: Install dependencies
       run: |
+        git config --global url.https://github.com/.insteadOf git://github.com/
+        git clone https://github.com/nomad-coe/nomad.git
         pip install --upgrade pip
         pip install .[tests]
         pip install ./nomad[parsing]
