@@ -7,7 +7,6 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
@@ -19,6 +18,7 @@ jobs:
         pip install --upgrade pip
         pip install .[tests]
     - name: Checkout nomad
+      uses: actions/checkout@v2
       with:
         repository: nomad-coe/nomad
         path: ./nomad
