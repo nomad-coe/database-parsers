@@ -7,15 +7,15 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: check out nomad
-      uses: actions/checkout@v2
+    - name: Install dependencies
       with:
         repository: nomad-coe/nomad
-    - name: Install dependencies
+        path: ./nomad
       run: |
         echo $(pwd)
         ls
