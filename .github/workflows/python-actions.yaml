@@ -13,18 +13,21 @@ jobs:
       with:
         python-version: 3.9
     - name: Install dependencies
-      with:
-        repository: nomad-coe/nomad
-        path: ./nomad
       run: |
         echo $(pwd)
         ls
         pip install --upgrade pip
         pip install .[tests]
-        cd nomad
-        pip install .[parsing]
-        cd ..
-    - name: pycodestyle
+    - name: Checkout nomad
+      with:
+        repository: nomad-coe/nomad
+        path: ./nomad
+    - name: Install nomad
+      run: |
+        echo $(pwd)
+        ls
+        pip install ./nomad[parsing]
+´    - name: pycodestyle
       run: |
         python -m pycodestyle --ignore=E501,E701,E731 *parsers tests
     - name: pylint
