@@ -19,6 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         echo $(pwd)
+        ls
         pip install --upgrade pip
         pip install .[tests]
         cd nomad
