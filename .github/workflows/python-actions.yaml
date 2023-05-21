@@ -7,23 +7,22 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: Install nomad
+    - name: Checkout nomad
       uses: actions/checkout@v2
       with:
         repository: nomad-coe/nomad
         fetch-depth: '0'
         path: ./nomad
+    - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install ./nomad[parsing]
-    - name: Install dependencies
-      uses: actions/checkout@v3
-      run: |
         pip install .[tests]
+        pip install ./nomad[parsing]
     - name: pycodestyle
       run: |
         python -m pycodestyle --ignore=E501,E701,E731 *parsers tests
