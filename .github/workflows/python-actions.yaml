@@ -12,12 +12,12 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: Checkout nomad
-      uses: actions/checkout@v2
+    - name: Check out nomad
+      uses: actions/checkout@v3
       with:
         repository: nomad-coe/nomad
-        fetch-depth: '0'
-        path: ./nomad
+        path: nomad
+        submodules: true
     - name: Install dependencies
       run: |
         pip install --upgrade pip
@@ -28,7 +28,7 @@ jobs:
         python -m pycodestyle --ignore=E501,E701,E731 *parsers tests
     - name: pylint
       run: |
-        python -m pylint --load-plugins=nomad.metainfo.pylint_plugin *parsers tests
+        python -m pylint *parsers tests
     - name: mypy
       run: |
         python -m mypy --ignore-missing-imports --follow-imports=silent --no-strict-optional *parsers tests
