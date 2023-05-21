@@ -44,7 +44,7 @@ class Converter:
     def __init__(self, entries, logger=None):
         self.entries = entries
         self.logger = logger if logger is not None else logging.getLogger('__name__')
-        self.material = dict()
+        self.material = {}
 
     @property
     def entries(self):
@@ -53,7 +53,7 @@ class Converter:
     @entries.setter
     def entries(self, value):
         self._entries = value
-        self.material = dict()
+        self.material = {}
         self.archive = EntryArchive()
 
     def calculate_nomad_error(self, property_name, transform_function=None):
@@ -178,7 +178,7 @@ class Converter:
                 cell = Cell(archive.run[-1].system[-1].atoms.lattice_vectors.to('angstrom').magnitude)
                 kpoints_special = cell.get_bravais_lattice().get_special_points_array()
 
-            kpoints = np.array(archive.m_xpath('%s.kpoints' % property_name.rsplit('.', 1)[0]))
+            kpoints = np.array(archive.m_xpath(f'{property_name.rsplit(".", 1)[0]}.kpoints'))
 
             data_special = []
             for kpoint in kpoints_special:
@@ -222,7 +222,7 @@ class Converter:
                 sec_method = sec_run.m_create(Method)
                 sec_method.force_field = ForceField(model=[Model(
                     name=model,
-                    reference='https://openkim.org/id/%s' % model)])
+                    reference=f'https://openkim.org/id/{model}')])
 
             energies = get_value(entry, 'cohesive-potential-energy.si-value', True)
             for n, energy in enumerate(energies):
@@ -399,7 +399,7 @@ class OpenKIMParser:
 def openkim_entries_to_nomad_archive(entries, filename=None):
     if isinstance(entries, str):
         if filename is None:
-            filename = 'openkim_archive_%s.json' % os.path.basename(entries).rstrip('.json')
+            filename = f'openkim_archive_{os.path.basename(entries).rstrip(".json")}.json'
         with open(entries) as f:
             entries = json.load(f)
 
