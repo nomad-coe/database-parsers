@@ -22,7 +22,7 @@ from nomad.metainfo import (  # pylint: disable=unused-import
     MSection, MCategory, Category, Package, Quantity, Section, SubSection, SectionProxy,
     Reference, JSON
 )
-from nomad.datamodel.metainfo import simulation, workflow
+from nomad.datamodel.metainfo import simulation
 
 
 m_package = Package()
@@ -114,7 +114,7 @@ class System(simulation.system.System):
         ''')
 
 
-class Elastic(workflow.Elastic):
+class Elastic(simulation.workflow.Elastic):
 
     m_def = Section(validate=False, extends_base_section=True)
 
@@ -127,7 +127,7 @@ class Elastic(workflow.Elastic):
         ''')
 
 
-class Phonon(workflow.Phonon):
+class Phonon(simulation.workflow.Phonon):
 
     m_def = Section(validate=False, extends_base_section=True)
 
@@ -140,7 +140,7 @@ class Phonon(workflow.Phonon):
         ''')
 
 
-class Workflow(workflow.Workflow):
+class SimulationWorkflow(simulation.workflow.SimulationWorkflow):
 
     m_def = Section(validate=False, extends_base_section=True)
 
