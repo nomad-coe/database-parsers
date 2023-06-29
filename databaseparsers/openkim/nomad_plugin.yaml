@@ -16,3 +16,4 @@ metadata:
 name: parsers/openkim
 parser_class_name: databaseparsers.openkim.parser.OpenKIMParser
 python_package: databaseparsers.openkim
+plugin_source_code_url: https://github.com/nomad-coe/electronic-parsers/tree/develop/databaseparsers/openkim
