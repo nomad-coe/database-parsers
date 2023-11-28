@@ -9,9 +9,10 @@ description = 'Collection of NOMAD parsers for databases.'
 readme = "README.md"
 authors = [{ name = "The NOMAD Authors" }]
 license = { file = "LICENSE" }
-# dependencies = [
-#     "nomad-lab[infrastrucutre]",
-# ]
+dependencies = [
+    #"nomad-lab[infrastructure]@git+https://github.com/nomad-coe/nomad.git@develop"
+    "nomad-schema-plugin-simulation-workflow@git+https://github.com/nomad-coe/nomad-schema-plugin-simulation-workflow.git@develop",
+]
 
 [project.urls]
 homepage = "https://github.com/nomad-coe/database-parsers"
