@@ -36,7 +36,7 @@ from nomad.datamodel.metainfo.simulation.system import System, Atoms
 from nomad.datamodel.metainfo.simulation.method import Method, ForceField, Model
 from nomad.datamodel.metainfo.simulation.calculation import (
     BandEnergies, BandStructure, Calculation, Energy, EnergyEntry, Stress, StressEntry)
-from nomad.datamodel.metainfo.simulation.workflow import (
+from simulationworkflowschema import (
     Elastic, ElasticMethod, ElasticResults, Phonon
 )
 from .metainfo import openkim  # pylint: disable=unused-import
