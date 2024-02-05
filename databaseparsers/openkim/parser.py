@@ -31,10 +31,10 @@ from nomad.units import ureg
 from nomad.datamodel import EntryArchive
 from nomad.client import api
 
-from nomad.datamodel.metainfo.simulation.run import Run, Program
-from nomad.datamodel.metainfo.simulation.system import System, Atoms
-from nomad.datamodel.metainfo.simulation.method import Method, ForceField, Model
-from nomad.datamodel.metainfo.simulation.calculation import (
+from runschema.run import Run, Program
+from runschema.system import System, Atoms
+from runschema.method import Method, ForceField, Model
+from runschema.calculation import (
     BandEnergies, BandStructure, Calculation, Energy, EnergyEntry, Stress, StressEntry)
 from simulationworkflowschema import (
     Elastic, ElasticMethod, ElasticResults, Phonon
@@ -194,7 +194,8 @@ class Converter:
         # first entry is the parser-generated header used identify an  open-kim
         workflow = None
         for entry in self.entries:
-            sec_run = self.archive.m_create(Run)
+            sec_run = Run()
+            self.archive.run.append(sec_run)
             sec_run.program = Program(name='OpenKIM', version=entry.get('meta.runner.short-id'))
 
             compile_date = entry.get('meta.created_on')
@@ -207,8 +208,10 @@ class Converter:
 
             atoms = get_atoms(entry)
             for atom in atoms:
-                sec_system = sec_run.m_create(System)
-                sec_atoms = sec_system.m_create(Atoms)
+                sec_system = System()
+                sec_run.system.append(sec_system)
+                sec_atoms = Atoms()
+                sec_system.atoms = sec_atoms
                 sec_atoms.labels = atom.get_chemical_symbols()
                 sec_atoms.positions = atom.get_positions() * ureg.angstrom
                 sec_atoms.lattice_vectors = atom.get_cell().array * ureg.angstrom
@@ -222,24 +225,34 @@ class Converter:
             # model parameters
             model = sec_run.x_openkim_meta.get('meta.model')
             if model is not None:
-                sec_method = sec_run.m_create(Method)
+                sec_method = Method()
+                sec_run.method.append(sec_method)
                 sec_method.force_field = ForceField(model=[Model(
                     name=model,
                     reference=f'https://openkim.org/id/{model}')])
 
             energies = get_value(entry, 'cohesive-potential-energy.si-value', True)
             for n, energy in enumerate(energies):
-                sec_scc = sec_run.m_create(Calculation)
+                sec_scc = Calculation()
+                sec_run.calculation.append(sec_scc)
                 sec_scc.energy = Energy(total=EnergyEntry(value=energy))
 
             temperatures = get_value(entry, 'temperature.si-value', True)
             for n, temperature in enumerate(temperatures):
-                sec_scc = sec_run.calculation[n] if sec_run.calculation else sec_run.m_create(Calculation)
+                if sec_run.calculation:
+                    sec_scc = sec_run.calculation[n]
+                else:
+                    sec_scc = Calculation()
+                    sec_run.calculation.append(sec_scc)
                 sec_scc.temperature = temperature
 
             stress = get_value(entry, 'cauchy-stress.si-value')
             if stress is not None:
-                sec_scc = sec_run.calculation[-1] if sec_run.calculation else sec_run.m_create(Calculation)
+                if sec_run.calculation:
+                    sec_scc = sec_run.calculation[-1]
+                else:
+                    sec_scc = Calculation()
+                    sec_run.calculation.append(sec_scc)
                 stress_tensor = np.zeros((3, 3))
                 stress_tensor[0][0] = stress[0]
                 stress_tensor[1][1] = stress[1]
@@ -338,10 +351,16 @@ class Converter:
             if 'phonon-dispersion' in property_id:
                 workflow = Phonon()
                 if 'response-frequency.si-value' in entry:
-                    sec_scc = sec_run.calculation[-1] if sec_run.calculation else sec_run.m_create(Calculation)
-                    sec_bandstructure = sec_scc.m_create(BandStructure, Calculation.band_structure_phonon)
+                    if sec_run.calculation:
+                        sec_scc = sec_run.calculation[-1]
+                    else:
+                        sec_scc = Calculation()
+                        sec_run.calculation.append(sec_scc)
+                    sec_bandstructure = BandStructure()
+                    sec_scc.band_structure_phonon.append(sec_bandstructure)
                     # TODO find a way to segment the frequencies
-                    sec_segment = sec_bandstructure.m_create(BandEnergies)
+                    sec_segment = BandEnergies()
+                    sec_bandstructure.segment.append(sec_segment)
                     energies = entry['response-frequency.si-value']
                     if len(np.shape(energies)) == 1:
                         energies = energies[0]
