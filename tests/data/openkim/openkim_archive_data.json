@@ -1,6 +1,7 @@
 {
     "run": [
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_776080871867_007",
@@ -61,6 +62,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_929921425793_007",
@@ -121,6 +123,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -181,6 +184,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -241,6 +245,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -301,6 +306,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -361,6 +367,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -421,6 +428,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -481,6 +489,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
@@ -541,6 +550,7 @@
             ]
         },
         {
+	    "m_def": "runschema.run.Run",
             "program": {
                 "name": "OpenKIM",
                 "version": "TE_162589006162_007",
