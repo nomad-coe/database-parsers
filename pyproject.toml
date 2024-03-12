@@ -3,14 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = 'databaseparsers'
-version = '1.0'
-description = 'Collection of NOMAD parsers for databases.'
+name = "databaseparsers"
+version = "1.0"
+description = "Collection of NOMAD parsers for databases."
 readme = "README.md"
 authors = [{ name = "The NOMAD Authors" }]
 license = { file = "LICENSE" }
 dependencies = [
-    "nomad-lab[infrastructure]@git+https://github.com/nomad-coe/nomad.git@develop",
     "nomad-schema-plugin-simulation-workflow@git+https://github.com/nomad-coe/nomad-schema-plugin-simulation-workflow.git@develop",
     "nomad-schema-plugin-run@git+https://github.com/nomad-coe/nomad-schema-plugin-run.git@develop"
 ]
@@ -20,16 +19,16 @@ homepage = "https://github.com/nomad-coe/database-parsers"
 
 [project.optional-dependencies]
 tests = [
-    'mypy==1.0.1',
-    'pylint==2.13.9',
-    'pylint_plugin_utils==0.5',
-    'pycodestyle==2.8.0',
-    'pytest==3.10.0',
-    'pytest-timeout==1.4.2',
-    'pytest-cov==2.7.1',
-    'astroid==2.11.7',
-    'typing-extensions==4.4.0',
-    'ruff==0.1.4',
+    "mypy==1.0.1",
+    "pylint==2.13.9",
+    "pylint_plugin_utils==0.5",
+    "pycodestyle==2.8.0",
+    "pytest==3.10.0",
+    "pytest-timeout==1.4.2",
+    "pytest-cov==2.7.1",
+    "astroid==2.11.7",
+    "typing-extensions==4.4.0",
+    "ruff==0.1.4",
 ]
 
 [tool.ruff]
@@ -62,7 +61,7 @@ include = [
 ]
 
 [tool.setuptools.package-data]
-databaseparsers = ['*/metadata.yaml', '*/README.md']
+databaseparsers = ["*/metadata.yaml", "*/README.md"]
 
 [tool.mypy]
 strict = false
