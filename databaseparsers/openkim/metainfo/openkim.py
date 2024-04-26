@@ -16,11 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import numpy as np            # pylint: disable=unused-import
-import typing                 # pylint: disable=unused-import
+import numpy as np  # pylint: disable=unused-import
+import typing  # pylint: disable=unused-import
 from nomad.metainfo import (  # pylint: disable=unused-import
-    MSection, MCategory, Category, Package, Quantity, Section, SubSection, SectionProxy,
-    Reference, JSON
+    MSection,
+    MCategory,
+    Category,
+    Package,
+    Quantity,
+    Section,
+    SubSection,
+    SectionProxy,
+    Reference,
+    JSON,
 )
 import runschema.run  # pylint: disable=unused-import
 import runschema.calculation  # pylint: disable=unused-import
@@ -33,145 +41,156 @@ m_package = Package()
 
 
 class Run(runschema.run.Run):
-
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_build_date = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         build date as string
-        ''')
+        """,
+    )
 
     x_openkim_src_date = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         date of last modification of the source as string
-        ''')
+        """,
+    )
 
     x_openkim_inserted_on = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         title for the property
-        ''')
+        """,
+    )
 
     x_openkim_property_id = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         unique ID of the property
-        ''')
+        """,
+    )
 
     x_openkim_property_title = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         title for the property
-        ''')
+        """,
+    )
 
     x_openkim_property_description = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         title for the property
-        ''')
+        """,
+    )
 
     x_openkim_instance_id = Quantity(
         type=np.dtype(np.int32),
         shape=[],
-        description='''
+        description="""
         unique ID of the property
-        ''')
+        """,
+    )
 
     x_openkim_latest = Quantity(
         type=bool,
         shape=[],
-        description='''
-        ''')
+        description="""
+        """,
+    )
 
     x_openkim_meta = Quantity(
         type=JSON,
         shape=[],
-        description='''
-        openkim metadata'''
+        description="""
+        openkim metadata""",
     )
 
 
 class System(runschema.system.System):
-
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_short_name = Quantity(
         type=str,
         shape=[1],
-        description='''
+        description="""
         short name defining the crystal
-        ''')
+        """,
+    )
 
     x_openkim_space_group = Quantity(
         type=str,
         shape=[1],
-        description='''
+        description="""
         short name defining the crystal
-        ''')
+        """,
+    )
 
 
 class Elastic(simulationworkflowschema.Elastic):
-
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_excess = Quantity(
         type=np.dtype(np.float64),
         shape=[],
-        unit='pascal',
-        description='''
+        unit="pascal",
+        description="""
         total square numerical asymmetry of the calculated elastic constants
-        ''')
+        """,
+    )
 
 
 class Phonon(simulationworkflowschema.Phonon):
-
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_wave_number = Quantity(
         type=np.dtype(np.float64),
-        shape=['n_spin_channels', 'n_kpoints'],
-        unit='1 / m',
-        description='''
+        shape=["n_spin_channels", "n_kpoints"],
+        unit="1 / m",
+        description="""
         wave numbers for each k-point
-        ''')
+        """,
+    )
 
 
-class SimulationWorkflow(simulationworkflowschema.general.SimulationWorkflow):
-
+class SimulationWorkflow(simulationworkflowschema.SimulationWorkflow):
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_property = Quantity(
         type=str,
         shape=[],
-        description='''
+        description="""
         name of the property to be compared to nomad
-        ''')
+        """,
+    )
 
     x_openkim_nomad_rms_error = Quantity(
         type=np.dtype(np.float64),
         shape=[],
-        description='''
+        description="""
         root mean square difference of the openkim data with respect to nomad
-        ''')
+        """,
+    )
 
     x_openkim_nomad_std = Quantity(
         type=np.dtype(np.float64),
         shape=[],
-        description='''
+        description="""
         standard deviation of the nomad data
-        ''')
+        """,
+    )
 
     x_openkim_n_nomad_data = Quantity(
         type=np.dtype(np.int32),
         shape=[],
-        description='''
+        description="""
         number of nomad entries with property corresponding to x_openkim_property
-        ''')
+        """,
+    )
