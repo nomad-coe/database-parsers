@@ -35,17 +35,22 @@ from runschema.run import Run, Program
 from runschema.system import System, Atoms
 from runschema.method import Method, ForceField, Model
 from runschema.calculation import (
-    BandEnergies, BandStructure, Calculation, Energy, EnergyEntry, Stress, StressEntry)
-from simulationworkflowschema import (
-    Elastic, ElasticMethod, ElasticResults, Phonon
+    BandEnergies,
+    BandStructure,
+    Calculation,
+    Energy,
+    EnergyEntry,
+    Stress,
+    StressEntry,
 )
+from simulationworkflowschema import Elastic, ElasticMethod, ElasticResults, Phonon
 from .metainfo import openkim  # pylint: disable=unused-import
 
 
 class Converter:
     def __init__(self, entries, logger=None):
         self.entries = entries
-        self.logger = logger if logger is not None else logging.getLogger('__name__')
+        self.logger = logger if logger is not None else logging.getLogger("__name__")
         self.material = {}
 
     @property
@@ -63,8 +68,8 @@ class Converter:
             # TODO add other properties: phonon
             # challenge for phonon is alligning phonon frequency array or extracting
             # frequencies at high-symm k-points
-            'workflow.results.elastic_constants_matrix_second_order': 'mechanical',
-            'run[-1].calculation[-1].band_structure_phonon[-1].segment[*].energies': 'vibrational',
+            "workflow.results.elastic_constants_matrix_second_order": "mechanical",
+            "run[-1].calculation[-1].band_structure_phonon[-1].segment[*].energies": "vibrational",
         }
         if property_name not in property_map:
             return
@@ -75,56 +80,70 @@ class Converter:
             return
 
         if transform_function is None:
-            transform_function = lambda archive, property_name: np.array(archive.m_xpath(property_name)).flatten()
+            transform_function = lambda archive, property_name: np.array(
+                archive.m_xpath(property_name)
+            ).flatten()
 
         page_after_value = None
         nomad_data = []
         query = {
-            'results.material.elements': elements,
-            'results.material.n_elements': len(elements),
-            'results.properties.available_properties': property_map.get(property_name),
+            "results.material.elements": elements,
+            "results.material.n_elements": len(elements),
+            "results.properties.available_properties": property_map.get(property_name),
         }
-        if self.material.get('space_group_number') is not None:
-            query['results.material.symmetry.space_group_number'] = self.material.get('space_group_number')
-        elif self.material.get('structure_name') is not None:
-            query['results.material.symmetry.structure_name'] = self.material.get('structure_name')
+        if self.material.get("space_group_number") is not None:
+            query["results.material.symmetry.space_group_number"] = self.material.get(
+                "space_group_number"
+            )
+        elif self.material.get("structure_name") is not None:
+            query["results.material.symmetry.structure_name"] = self.material.get(
+                "structure_name"
+            )
         while True:
-            response = api.post('entries/archive/query', data=json.dumps({
-                'owner': 'public',
-                'query': query,
-                'pagination': {
-                    'page_size': 5,
-                    'page_after_value': page_after_value
-                },
-                'required': {
-                    'run': {
-                        'calculation[-1]': '*',
-                        'system[-1]': {
-                            'atoms': '*'
-                        }
-                    },
-                    'workflow': '*'
-                }
-            }))
+            response = api.post(
+                "entries/archive/query",
+                data=json.dumps(
+                    {
+                        "owner": "public",
+                        "query": query,
+                        "pagination": {
+                            "page_size": 5,
+                            "page_after_value": page_after_value,
+                        },
+                        "required": {
+                            "run": {
+                                "calculation[-1]": "*",
+                                "system[-1]": {"atoms": "*"},
+                            },
+                            "workflow": "*",
+                        },
+                    }
+                ),
+            )
             assert response.status_code == 200
             result = response.json()
-            nomad_data.extend([data['archive'] for data in result['data']])
-            page_after_value = result['pagination'].get('next_page_after_value')
+            nomad_data.extend([data["archive"] for data in result["data"]])
+            page_after_value = result["pagination"].get("next_page_after_value")
 
-            if len(result['data']) < 5 or page_after_value is None:
+            if len(result["data"]) < 5 or page_after_value is None:
                 break
 
         if len(nomad_data) == 0:
             return
 
         try:
-            nomad_data = np.array([transform_function(EntryArchive().m_from_dict(data), property_name) for data in nomad_data])
+            nomad_data = np.array(
+                [
+                    transform_function(EntryArchive().m_from_dict(data), property_name)
+                    for data in nomad_data
+                ]
+            )
             openkim_data = np.array(transform_function(self.archive, property_name))
         except Exception:
-            self.logger.error('Error transforming data.')
+            self.logger.error("Error transforming data.")
 
         if np.shape(nomad_data[0]) != np.shape(openkim_data):
-            self.logger.error('Incompatible shape of openkim data and nomad.')
+            self.logger.error("Incompatible shape of openkim data and nomad.")
             return
 
         # calculate rms error of openkim data wrt nomad
@@ -132,10 +151,12 @@ class Converter:
         sec_workflow.x_openkim_property = property_name
         sec_workflow.x_openkim_n_nomad_data = len(nomad_data)
         sec_workflow.x_openkim_nomad_std = np.average(np.std(nomad_data, axis=0))
-        sec_workflow.x_openkim_nomad_rms_error = np.sqrt(np.average((nomad_data - openkim_data)**2))
+        sec_workflow.x_openkim_nomad_rms_error = np.sqrt(
+            np.average((nomad_data - openkim_data) ** 2)
+        )
         # TODO add references to the nomad calculations / workflows
 
-    def convert(self, filename='openkim_archive.json'):
+    def convert(self, filename="openkim_archive.json"):
         def get_value(entry, key, array=False, default=None):
             val = entry.get(key, [] if array else default)
             return [val] if array and not isinstance(val, list) else val
@@ -145,46 +166,70 @@ class Converter:
             return matrix + matrix.T - np.diag(matrix.diagonal())
 
         def get_atoms(entry):
-            symbols = entry.get('species.source-value', [])
-            basis = entry.get('basis-atom-coordinates.source-value', [[0., 0., 0.]])
+            symbols = entry.get("species.source-value", [])
+            basis = entry.get("basis-atom-coordinates.source-value", [[0.0, 0.0, 0.0]])
             cellpar = []
-            for x in ['a', 'b', 'c']:
-                value = entry.get(f'{x}.si-value', cellpar[0] if cellpar else 1)
+            for x in ["a", "b", "c"]:
+                value = entry.get(f"{x}.si-value", cellpar[0] if cellpar else 1)
                 cellpar.append([value] if not isinstance(value, list) else value)
-            cellpar = (cellpar * ureg.m).to('angstrom').magnitude
+            cellpar = (cellpar * ureg.m).to("angstrom").magnitude
 
             # TODO are angles denoted by alpha, beta, gamma in openkim? can they be lists?
-            alpha = entry.get('alpha.source-value', 90)
-            beta = entry.get('beta.source-value', 90)
-            gamma = entry.get('gamma.source-value', 90)
+            alpha = entry.get("alpha.source-value", 90)
+            beta = entry.get("beta.source-value", 90)
+            gamma = entry.get("gamma.source-value", 90)
 
             atoms = []
             for n in range(len(cellpar[0])):
                 try:
-                    cell = Cell.fromcellpar([cellpar[0][n], cellpar[1][n], cellpar[2][n], alpha, beta, gamma])
+                    cell = Cell.fromcellpar(
+                        [
+                            cellpar[0][n],
+                            cellpar[1][n],
+                            cellpar[2][n],
+                            alpha,
+                            beta,
+                            gamma,
+                        ]
+                    )
                     atom = aseatoms(scaled_positions=basis, cell=cell, pbc=True)
                     if len(symbols) == len(atom.numbers):
                         atom.symbols = symbols
                     else:
-                        atom.symbols = ['X' for _ in atom.numbers] if len(symbols) == 0 else symbols
+                        atom.symbols = (
+                            ["X" for _ in atom.numbers]
+                            if len(symbols) == 0
+                            else symbols
+                        )
                     atoms.append(atom)
                 except Exception:
-                    self.logger.error('Error generating structure.')
+                    self.logger.error("Error generating structure.")
             return atoms
 
         def phonon_transform_function(archive, property_name, **kwargs):
             # Transform phonon frequencies to select data only for special kpoints
             data = np.array(archive.m_xpath(property_name))
-            kpoints_special = kwargs.get('kpoints')
+            kpoints_special = kwargs.get("kpoints")
             if kpoints_special is None:
-                cell = Cell(archive.run[-1].system[-1].atoms.lattice_vectors.to('angstrom').magnitude)
+                cell = Cell(
+                    archive.run[-1]
+                    .system[-1]
+                    .atoms.lattice_vectors.to("angstrom")
+                    .magnitude
+                )
                 kpoints_special = cell.get_bravais_lattice().get_special_points_array()
 
-            kpoints = np.array(archive.m_xpath(f'{property_name.rsplit(".", 1)[0]}.kpoints'))
+            kpoints = np.array(
+                archive.m_xpath(f'{property_name.rsplit(".", 1)[0]}.kpoints')
+            )
 
             data_special = []
             for kpoint in kpoints_special:
-                index = np.where((kpoints[:, :, 0] == kpoint[0]) & (kpoints[:, :, 1] == kpoint[1]) & (kpoints[:, :, 2] == kpoint[2]))
+                index = np.where(
+                    (kpoints[:, :, 0] == kpoint[0])
+                    & (kpoints[:, :, 1] == kpoint[1])
+                    & (kpoints[:, :, 2] == kpoint[2])
+                )
                 if np.size(index) == 0:
                     continue
                 data_special.append(data[index[0][0], :, index[0][1], :])
@@ -196,15 +241,23 @@ class Converter:
         for entry in self.entries:
             sec_run = Run()
             self.archive.run.append(sec_run)
-            sec_run.program = Program(name='OpenKIM', version=entry.get('meta.runner.short-id'))
+            sec_run.program = Program(
+                name="OpenKIM", version=entry.get("meta.runner.short-id")
+            )
 
-            compile_date = entry.get('meta.created_on')
+            compile_date = entry.get("meta.created_on")
             if compile_date is not None:
-                dt = datetime.strptime(compile_date, '%Y-%m-%d %H:%M:%S.%f') - datetime(1970, 1, 1)
+                dt = datetime.strptime(compile_date, "%Y-%m-%d %H:%M:%S.%f") - datetime(
+                    1970, 1, 1
+                )
                 sec_run.program.compilation_datetime = dt.total_seconds()
 
             # openkim metadata
-            sec_run.x_openkim_meta = {key: entry.pop(key) for key in list(entry.keys()) if key.startswith('meta.')}
+            sec_run.x_openkim_meta = {
+                key: entry.pop(key)
+                for key in list(entry.keys())
+                if key.startswith("meta.")
+            }
 
             atoms = get_atoms(entry)
             for atom in atoms:
@@ -217,27 +270,31 @@ class Converter:
                 sec_atoms.lattice_vectors = atom.get_cell().array * ureg.angstrom
                 sec_atoms.periodic = [True, True, True]
             try:
-                self.material['space_group_number'] = Spacegroup(entry['space-group.source-value']).no
-                self.material['structure_name'] = entry['short-name.source-value'][-1]
+                self.material["space_group_number"] = Spacegroup(
+                    entry["space-group.source-value"]
+                ).no
+                self.material["structure_name"] = entry["short-name.source-value"][-1]
             except Exception:
                 pass
 
             # model parameters
-            model = sec_run.x_openkim_meta.get('meta.model')
+            model = sec_run.x_openkim_meta.get("meta.model")
             if model is not None:
                 sec_method = Method()
                 sec_run.method.append(sec_method)
-                sec_method.force_field = ForceField(model=[Model(
-                    name=model,
-                    reference=f'https://openkim.org/id/{model}')])
+                sec_method.force_field = ForceField(
+                    model=[
+                        Model(name=model, reference=f"https://openkim.org/id/{model}")
+                    ]
+                )
 
-            energies = get_value(entry, 'cohesive-potential-energy.si-value', True)
+            energies = get_value(entry, "cohesive-potential-energy.si-value", True)
             for n, energy in enumerate(energies):
                 sec_scc = Calculation()
                 sec_run.calculation.append(sec_scc)
                 sec_scc.energy = Energy(total=EnergyEntry(value=energy))
 
-            temperatures = get_value(entry, 'temperature.si-value', True)
+            temperatures = get_value(entry, "temperature.si-value", True)
             for n, temperature in enumerate(temperatures):
                 if sec_run.calculation:
                     sec_scc = sec_run.calculation[n]
@@ -246,7 +303,7 @@ class Converter:
                     sec_run.calculation.append(sec_scc)
                 sec_scc.temperature = temperature
 
-            stress = get_value(entry, 'cauchy-stress.si-value')
+            stress = get_value(entry, "cauchy-stress.si-value")
             if stress is not None:
                 if sec_run.calculation:
                     sec_scc = sec_run.calculation[-1]
@@ -264,19 +321,25 @@ class Converter:
                 # TODO add nomad error, which property corresponding to stress
 
             for key, val in entry.items():
-                key = 'x_openkim_%s' % re.sub(r'\W', '_', key)
+                key = "x_openkim_%s" % re.sub(r"\W", "_", key)
                 try:
                     setattr(sec_run, key, val)
                 except Exception:
                     pass
 
             # workflow
-            property_id = entry.get('property-id', '')
+            property_id = entry.get("property-id", "")
             # elastic constants
-            if 'elastic-constants' in property_id:
+            if "elastic-constants" in property_id:
                 workflow = Elastic(method=ElasticMethod(), results=ElasticResults())
-                cij = [[get_value(entry, f'c{i}{j}.si-value', default=0) for j in range(1, 7)] for i in range(1, 7)]
-                sg = self.material.get('space_group_number', 0)
+                cij = [
+                    [
+                        get_value(entry, f"c{i}{j}.si-value", default=0)
+                        for j in range(1, 7)
+                    ]
+                    for i in range(1, 7)
+                ]
+                sg = self.material.get("space_group_number", 0)
                 if sg <= 74:
                     # triclinic / monoclinic / orthorhombic
                     pass
@@ -306,22 +369,38 @@ class Converter:
                     cij[4][4] = cij[3][3]
                     cij[5][5] = cij[3][3]
 
-                workflow.results.elastic_constants_matrix_second_order = symmetrize_matrix(cij)
+                workflow.results.elastic_constants_matrix_second_order = (
+                    symmetrize_matrix(cij)
+                )
 
                 try:
-                    self.calculate_nomad_error('workflow[-1].elastic.elastic_constants_matrix_second_order')
+                    self.calculate_nomad_error(
+                        "workflow[-1].elastic.elastic_constants_matrix_second_order"
+                    )
                 except Exception:
-                    self.logger.error('Failed to calculate nomad error.')
+                    self.logger.error("Failed to calculate nomad error.")
 
-                if 'strain-gradient' in property_id:
+                if "strain-gradient" in property_id:
                     # TODO implement symmetry
-                    dij = [[get_value(entry, f'd-{i}-{j}.si-value', default=0) for i in range(1, 19)] for j in range(1, 19)]
-                    workflow.results.elastic_constants_gradient_matrix_second_order = symmetrize_matrix(dij)
+                    dij = [
+                        [
+                            get_value(entry, f"d-{i}-{j}.si-value", default=0)
+                            for i in range(1, 19)
+                        ]
+                        for j in range(1, 19)
+                    ]
+                    workflow.results.elastic_constants_gradient_matrix_second_order = (
+                        symmetrize_matrix(dij)
+                    )
 
-                if 'excess.si-value' in entry:
-                    workflow.x_openkim_excess = entry['excess.si-value']
+                if "excess.si-value" in entry:
+                    workflow.x_openkim_excess = entry["excess.si-value"]
 
-            if 'gamma-surface' in property_id or 'stacking-fault' in property_id or 'twinning-fault' in property_id:
+            if (
+                "gamma-surface" in property_id
+                or "stacking-fault" in property_id
+                or "twinning-fault" in property_id
+            ):
                 pass
                 # TODO implement metainfo defs
                 # sec_interface = Interface()
@@ -348,9 +427,9 @@ class Converter:
                 # sec_interface.energy_unstable_twinning_fault = entry.get('unstable-twinning-energy.si-value')
                 # sec_interface.slip_fraction = entry.get('unstable-slip-fraction.source-value')
 
-            if 'phonon-dispersion' in property_id:
+            if "phonon-dispersion" in property_id:
                 workflow = Phonon()
-                if 'response-frequency.si-value' in entry:
+                if "response-frequency.si-value" in entry:
                     if sec_run.calculation:
                         sec_scc = sec_run.calculation[-1]
                     else:
@@ -361,12 +440,12 @@ class Converter:
                     # TODO find a way to segment the frequencies
                     sec_segment = BandEnergies()
                     sec_bandstructure.segment.append(sec_segment)
-                    energies = entry['response-frequency.si-value']
+                    energies = entry["response-frequency.si-value"]
                     if len(np.shape(energies)) == 1:
                         energies = energies[0]
                     sec_segment.energies = [energies]
                     try:
-                        wavevector = entry['wave-vector-direction.si-value']
+                        wavevector = entry["wave-vector-direction.si-value"]
                         cell = sec_run.system[-1].atoms.lattice_vectors.magnitude
                         # TODO how about spin-polarized case, not sure about calculation of kpoints value
                         sec_segment.kpoints = np.dot(wavevector, cell)
@@ -374,18 +453,21 @@ class Converter:
                         pass
 
                 try:
-                    self.calculate_nomad_error('run[-1].calculation[-1].band_structure_phonon[-1].segment[*].energies', phonon_transform_function)
+                    self.calculate_nomad_error(
+                        "run[-1].calculation[-1].band_structure_phonon[-1].segment[*].energies",
+                        phonon_transform_function,
+                    )
                 except Exception:
-                    self.logger.error('Failed to calculate nomad error.')
+                    self.logger.error("Failed to calculate nomad error.")
 
-                if 'wave-number.si-value' in entry:
-                    workflow.x_openkim_wave_number = [entry['wave-number.si-value']]
+                if "wave-number.si-value" in entry:
+                    workflow.x_openkim_wave_number = [entry["wave-number.si-value"]]
 
         # TODO handle multiple workflows
         self.archive.workflow2 = workflow
         # write archive to file
         if filename is not None:
-            with open(filename, 'w') as f:
+            with open(filename, "w") as f:
                 json.dump(self.archive.m_to_dict(), f, indent=4)
 
 
@@ -394,22 +476,22 @@ class OpenKIMParser:
         pass
 
     def parse(self, filepath, archive, logger):
-        logger = logger if logger is not None else logging.getLogger('__name__')
+        logger = logger if logger is not None else logging.getLogger("__name__")
 
         try:
-            with open(os.path.abspath(filepath), 'rt') as f:
+            with open(os.path.abspath(filepath), "rt") as f:
                 archive_data = json.load(f)
         except Exception:
-            logger.error('Error reading openkim archive')
+            logger.error("Error reading openkim archive")
             return
 
-        if isinstance(archive_data, dict) and archive_data.get('run') is not None:
+        if isinstance(archive_data, dict) and archive_data.get("run") is not None:
             archive.m_update_from_dict(archive_data)
             return
 
         # support for old version
-        if isinstance(archive_data, dict) and archive_data.get('QUERY') is not None:
-            archive_data = archive_data['QUERY']
+        if isinstance(archive_data, dict) and archive_data.get("QUERY") is not None:
+            archive_data = archive_data["QUERY"]
 
         converter = Converter(archive_data, logger)
         converter.archive = archive
@@ -419,7 +501,9 @@ class OpenKIMParser:
 def openkim_entries_to_nomad_archive(entries, filename=None):
     if isinstance(entries, str):
         if filename is None:
-            filename = f'openkim_archive_{os.path.basename(entries).rstrip(".json")}.json'
+            filename = (
+                f'openkim_archive_{os.path.basename(entries).rstrip(".json")}.json'
+            )
         with open(entries) as f:
             entries = json.load(f)
 
