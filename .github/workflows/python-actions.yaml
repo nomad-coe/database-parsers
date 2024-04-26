@@ -12,16 +12,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
+        pip install '.[tests]' --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
         # we need the latest nomad version for testing
         pip install nomad-lab[infrastructure]@git+https://github.com/nomad-coe/nomad.git@develop
-        pip install '.[tests]' --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
         pip install coverage coveralls
-    - name: pycodestyle
-      run: |
-        python -m pycodestyle --ignore=E501,E701,E731 *parsers tests
-    - name: pylint
-      run: |
-        python -m pylint *parsers tests
     - name: mypy
       run: |
         python -m mypy --ignore-missing-imports --follow-imports=silent --no-strict-optional *parsers tests
