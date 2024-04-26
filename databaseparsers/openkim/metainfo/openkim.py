@@ -92,7 +92,7 @@ class Run(runschema.run.Run):
     )
 
     x_openkim_instance_id = Quantity(
-        type=np.dtype(np.int32),
+        type=np.int32,
         shape=[],
         description="""
         unique ID of the property
@@ -138,7 +138,7 @@ class Elastic(simulationworkflowschema.Elastic):
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_excess = Quantity(
-        type=np.dtype(np.float64),
+        type=np.float64,
         shape=[],
         unit="pascal",
         description="""
@@ -151,7 +151,7 @@ class Phonon(simulationworkflowschema.Phonon):
     m_def = Section(validate=False, extends_base_section=True)
 
     x_openkim_wave_number = Quantity(
-        type=np.dtype(np.float64),
+        type=np.float64,
         shape=["n_spin_channels", "n_kpoints"],
         unit="1 / m",
         description="""
@@ -172,7 +172,7 @@ class SimulationWorkflow(simulationworkflowschema.SimulationWorkflow):
     )
 
     x_openkim_nomad_rms_error = Quantity(
-        type=np.dtype(np.float64),
+        type=np.float64,
         shape=[],
         description="""
         root mean square difference of the openkim data with respect to nomad
@@ -180,7 +180,7 @@ class SimulationWorkflow(simulationworkflowschema.SimulationWorkflow):
     )
 
     x_openkim_nomad_std = Quantity(
-        type=np.dtype(np.float64),
+        type=np.float64,
         shape=[],
         description="""
         standard deviation of the nomad data
@@ -188,7 +188,7 @@ class SimulationWorkflow(simulationworkflowschema.SimulationWorkflow):
     )
 
     x_openkim_n_nomad_data = Quantity(
-        type=np.dtype(np.int32),
+        type=np.int32,
         shape=[],
         description="""
         number of nomad entries with property corresponding to x_openkim_property
