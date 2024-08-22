@@ -16,5 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from nomad.config.models.plugins import ParserEntryPoint
 
-# from .openkim.parser import OpenKIMParser
+
+class EntryPoint(ParserEntryPoint):
+    def load(self):
+        from nomad.parsing import MatchingParserInterface
+        from . import (
+            openkim
+        )
+
+        return MatchingParserInterface(self.parser_class_name)
+
+
+openkim_parser_entry_point = EntryPoint(
+    name='parsers/openkim',
+    description='NOMAD parser for OPENKIM.',
+    parser_class_name='workflowparsers.openkim.OpenKIMParser',
+)
