@@ -62,7 +62,7 @@ include = [
 ]
 
 [project.entry-points.'nomad.plugin']
-openkimparser = "workflowparsers:openkim_parser_entry_point"
+openkimparser = "databaseparsers:openkim_parser_entry_point"
 
 [tool.mypy]
 strict = false
