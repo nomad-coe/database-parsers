@@ -16,10 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pydantic import Field
+
 from nomad.config.models.plugins import ParserEntryPoint
 
 
 class EntryPoint(ParserEntryPoint):
+    parser_class_name: str = Field(
+        description="""
+        The fully qualified name of the Python class that implements the parser.
+        This class must have a function `def parse(self, mainfile, archive, logger)`.
+    """
+    )
+
     def load(self):
         from nomad.parsing import MatchingParserInterface
         from . import (
@@ -32,5 +41,8 @@ class EntryPoint(ParserEntryPoint):
 openkim_parser_entry_point = EntryPoint(
     name='parsers/openkim',
     description='NOMAD parser for OPENKIM.',
-    parser_class_name='workflowparsers.openkim.OpenKIMParser',
+    python_package='databaseparsers.openkim',
+    mainfile_contents_re=r'openkim|OPENKIM|OpenKIM',
+    mainfile_mime_re='(application/json)|(text/.*)',
+    parser_class_name='databaseparsers.openkim.OpenKIMParser',
 )
