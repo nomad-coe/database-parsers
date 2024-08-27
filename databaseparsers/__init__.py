@@ -41,7 +41,7 @@ class EntryPoint(ParserEntryPoint):
         from nomad.parsing import MatchingParserInterface
         from . import openkim
 
-        return MatchingParserInterface(**self.dict())
+        return MatchingParserInterface(self.parser_class_name, **self.dict())
 
 
 openkim_parser_entry_point = EntryPoint(
