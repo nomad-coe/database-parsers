@@ -39,7 +39,6 @@ class EntryPoint(ParserEntryPoint):
 
     def load(self):
         from nomad.parsing import MatchingParserInterface
-        from . import openkim
 
         return MatchingParserInterface(**self.dict())
 
