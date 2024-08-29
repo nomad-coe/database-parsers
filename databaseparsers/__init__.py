@@ -45,6 +45,7 @@ class EntryPoint(ParserEntryPoint):
 
 openkim_parser_entry_point = EntryPoint(
     name='parsers/openkim',
+    aliases=['parsers/openkim'],
     description='NOMAD parser for OPENKIM.',
     python_package='databaseparsers.openkim',
     mainfile_contents_re=r'openkim|OPENKIM|OpenKIM',
