@@ -45,12 +45,18 @@ def test_entry(parser):
     assert sec_system.atoms.positions[1][1].magnitude == approx(1.65893189e-10)
     assert sec_system.atoms.lattice_vectors[2][2].magnitude == approx(3.31786378e-10)
 
-    assert sec_run[0].method[0].force_field.model[0].name == 'LJ_ElliottAkerson_2015_Universal__MO_959249795837_003'
+    assert (
+        sec_run[0].method[0].force_field.model[0].name
+        == 'LJ_ElliottAkerson_2015_Universal__MO_959249795837_003'
+    )
 
     sec_scc = sec_run[8].calculation[0]
     assert sec_scc.energy.total.value.magnitude == approx(4.513135831891813e-19)
 
-    assert sec_run[0].x_openkim_meta['meta.runner.driver.name'] == 'LatticeConstantCubicEnergy'
+    assert (
+        sec_run[0].x_openkim_meta['meta.runner.driver.name']
+        == 'LatticeConstantCubicEnergy'
+    )
 
 
 def test_elastic(parser):
@@ -67,13 +73,19 @@ def test_elastic(parser):
 
 def test_phonon(parser):
     archive = EntryArchive()
-    parser.parse('tests/data/openkim/openkim_archive_phonon-dispersion-relation-cubic-crystal-npt.json', archive, None)
+    parser.parse(
+        'tests/data/openkim/openkim_archive_phonon-dispersion-relation-cubic-crystal-npt.json',
+        archive,
+        None,
+    )
 
     sec_run = archive.run
     assert len(sec_run) == 337
     assert sec_run[0].calculation[0].stress.total.value[0][1].magnitude == approx(0)
     sec_band_structure = sec_run[15].calculation[0].band_structure_phonon[0]
-    assert sec_band_structure.segment[0].energies[0][3][1].magnitude == approx(9.639834657408083e-22)
+    assert sec_band_structure.segment[0].energies[0][3][1].magnitude == approx(
+        9.639834657408083e-22
+    )
     assert np.shape(sec_band_structure.segment[0].kpoints) == (100, 3)
 
     # workflow = archive.workflow
@@ -83,13 +95,19 @@ def test_phonon(parser):
 
 def test_stacking_fault(parser):
     archive = EntryArchive()
-    parser.parse('tests/data/openkim/StackingFaultFccCrystal_0bar_Ac__TE_567672586460_002.json', archive, None)
+    parser.parse(
+        'tests/data/openkim/StackingFaultFccCrystal_0bar_Ac__TE_567672586460_002.json',
+        archive,
+        None,
+    )
 
     sec_run = archive.run
     assert len(sec_run) == 6
     assert sec_run[1].system[0].atoms.labels == ['Ac']
-    assert sec_run[0].system[0].atoms.positions[0][2].magnitude == approx(0.)
-    assert sec_run[2].system[0].atoms.lattice_vectors[2][2].magnitude == approx(5.913618618249901e-10)
+    assert sec_run[0].system[0].atoms.positions[0][2].magnitude == approx(0.0)
+    assert sec_run[2].system[0].atoms.lattice_vectors[2][2].magnitude == approx(
+        5.913618618249901e-10
+    )
 
     # workflow = archive.workflow
     # assert workflow.m_def.name == 'Interface'

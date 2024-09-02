@@ -16,5 +16,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from pydantic import Field
+from typing import Optional
 
-# from .openkim.parser import OpenKIMParser
+from nomad.config.models.plugins import ParserEntryPoint
+
+
+class EntryPoint(ParserEntryPoint):
+    parser_class_name: str = Field(
+        description="""
+        The fully qualified name of the Python class that implements the parser.
+        This class must have a function `def parse(self, mainfile, archive, logger)`.
+    """
+    )
+    code_name: Optional[str]
+    code_homepage: Optional[str]
+    code_category: Optional[str]
+    metadata: Optional[dict] = Field(
+        description="""
+        Metadata passed to the UI. Deprecated. """
+    )
+
+    def load(self):
+        from nomad.parsing import MatchingParserInterface
+
+        return MatchingParserInterface(**self.dict())
+
+
+openkim_parser_entry_point = EntryPoint(
+    name='parsers/openkim',
+    aliases=['parsers/openkim'],
+    description='NOMAD parser for OPENKIM.',
+    python_package='databaseparsers.openkim',
+    mainfile_contents_re=r'openkim|OPENKIM|OpenKIM',
+    mainfile_mime_re='(application/json)|(text/.*)',
+    parser_class_name='databaseparsers.openkim.OpenKIMParser',
+    code_name='OpenKIM',
+    code_homepage='https://openkim.org/',
+    code_category='Database manager',
+    metadata={
+        'codeCategory': 'Database manager',
+        'codeLabel': 'OpenKIM',
+        'codeLabelStyle': 'Capitals: O,K,I,M',
+        'codeName': 'openkim',
+        'codeUrl': 'https://openkim.org/',
+        'parserDirName': 'dependencies/parsers/database/databaseparsers/openkim/',
+        'parserGitUrl': 'https://github.com/nomad-coe/database-parsers.git',
+        'parserSpecific': '',
+        'preamble': '',
+        'status': 'production',
+        'tableOfFiles': '',
+    },
+)
